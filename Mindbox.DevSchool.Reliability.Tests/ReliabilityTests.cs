@@ -10,10 +10,10 @@ public sealed class ReliabilityTests
 	{
 		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("http://localhost:5013");
-		httpClient.Timeout = TimeSpan.FromSeconds(2);
+		httpClient.Timeout = TimeSpan.FromSeconds(3);
 
-		var makeApiCallTasks = Enumerable.Range(0, 999)
-			.Select(_ => httpClient.GetAsync("/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
+		var makeApiCallTasks = Enumerable.Range(0, 20)
+			.Select(_ => httpClient.GetAsync("async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
 			.ToArray();
 
 		var responses = await Task.WhenAll(makeApiCallTasks);

@@ -17,4 +17,10 @@ public class SimpleController : ControllerBase
 	{
 		return _dbContext.WeatherForecasts.Find(id);
 	}
+	
+	[HttpGet("async/weatherForecast/{id:guid}")]
+	public async Task<WeatherForecast?> GetByIdAsync(Guid id)
+	{
+		return await _dbContext.WeatherForecasts.FindAsync(id);
+	}
 }

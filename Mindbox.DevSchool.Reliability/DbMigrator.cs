@@ -14,13 +14,21 @@ public class DbMigrator : IHostedService
 
 	public async Task StartAsync(CancellationToken cancellationToken)
 	{
-		await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
-		await _dbContext.Database.EnsureCreatedAsync(cancellationToken);
-		await _dbContext.Database.MigrateAsync(cancellationToken);
+		while (true)
+		{
+			try
+			{
+				await _dbContext.Database.EnsureCreatedAsync(cancellationToken);
+				await _dbContext.Database.MigrateAsync(cancellationToken);
+
+				break;
+			}
+			catch
+			{
+				// ignore
+			}
+		}
 	}
 
-	public Task StopAsync(CancellationToken cancellationToken)
-	{
-		return Task.CompletedTask;
-	}
+	public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

@@ -5,7 +5,8 @@
       context: .
       dockerfile: Mindbox.DevSchool.Reliability/Dockerfile
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "5013:5013"
     environment:
@@ -24,3 +25,12 @@
       POSTGRES_DB: devschool
     ports:
       - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 500s
+      retries: 1000
