@@ -15,6 +15,8 @@ public class Program
 			option.UseNpgsql(builder.Configuration["ConnectionStrings:DefaultConnection"]);
 		});
 
+		builder.Services.AddHostedService<DbMigrator>();
+
 		var app = builder.Build();
 
 		app.Run();

@@ -13,7 +13,7 @@ public sealed class ReliabilityTests
 		httpClient.Timeout = TimeSpan.FromSeconds(2);
 
 		var makeApiCallTasks = Enumerable.Range(0, 999)
-			.Select(_ => httpClient.GetAsync("/weatherForecast/1"))
+			.Select(_ => httpClient.GetAsync("/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
 			.ToArray();
 
 		var responses = await Task.WhenAll(makeApiCallTasks);

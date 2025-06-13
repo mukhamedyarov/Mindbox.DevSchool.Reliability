@@ -5,8 +5,11 @@ namespace Mindbox.DevSchool.Reliability;
 public class SimpleDbContext : DbContext
 {
 	public DbSet<WeatherForecast> WeatherForecasts => Set<WeatherForecast>();
-	
-	public SimpleDbContext(DbContextOptions<SimpleDbContext> options) : base(options) { }
+
+	public SimpleDbContext(DbContextOptions<SimpleDbContext> options) : base(options)
+	{
+		base.Database.EnsureCreated();
+	}
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
