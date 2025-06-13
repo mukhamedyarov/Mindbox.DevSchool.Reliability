@@ -1,0 +1,27 @@
+﻿services:
+  mindbox.devschool.reliability:
+    image: mindbox.devschool.reliability
+    build:
+      context: .
+      dockerfile: Mindbox.DevSchool.Reliability/Dockerfile
+    depends_on:
+      - db
+    ports:
+      - "5013:5013"
+    environment:
+      DOTNET_THREADPOOL_THREAD_COUNT: "1"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+    
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: devschool
+    ports:
+      - "5432:5432"

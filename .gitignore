@@ -1,0 +1,95 @@
+# Rider project files
+.idea/
+*.sln.iml
+
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Bb]uild[Ll]og.*
+*.exe
+*.dll
+*.pdb
+*.app
+*.so
+*.dylib
+*.lib
+*.ncb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider caches
+.idea/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf/
+.idea/**/dataSources/
+.idea/**/dataSources.local.xml
+.idea/**/dataSources.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/.idea.*
+
+# VS Code
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# User secrets (for ASP.NET Core)
+secrets.json
+
+# Environment-specific
+*.env
+
+# JetBrains Rider local run configs
+.idea/runConfigurations/
+
+# DotCover
+*.dotCover
+
+# NUnit
+TestResult.xml
+*.VisualState.xml
+TestResult-*.xml
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+*.codecoverage
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+resharper-host/
+
+# Rider plugin temp files
+.idea/.idea.*
+.idea/modules.xml
+
+# Local NuGet packages
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Compiled Razor views
+**/obj/**/Razor/
