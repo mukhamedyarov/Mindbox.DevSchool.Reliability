@@ -21,4 +21,13 @@ public class SimpleController : ControllerBase
 	[HttpGet("ct/async/weatherForecast/{id:guid}")]
 	public async Task<WeatherForecast?> GetByIdAsync(Guid id, CancellationToken token) =>
 		await _forecastRepository.GetByIAsync(id, token);
+
+	[HttpGet("timeout/ct/async/weatherForecast/{id:guid}")]
+	public async Task<WeatherForecast?> TimeoutGetByIdAsync(Guid id, CancellationToken token)
+	{
+		var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+		cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(3));
+		
+		return await _forecastRepository.GetByIAsync(id, cancellationTokenSource.Token);
+	}
 }
