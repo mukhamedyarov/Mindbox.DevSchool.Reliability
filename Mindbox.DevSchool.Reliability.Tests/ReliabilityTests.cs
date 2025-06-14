@@ -89,4 +89,22 @@ public sealed class ReliabilityTests
 			Assert.AreEqual(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 		}
 	}
+	
+	[TestMethod]
+	public async Task Reliability4()
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("http://localhost:5013");
+		
+		var apiCallTasks = Enumerable.Range(0, 4)
+			.Select(_ => httpClient.GetAsync("retry/timeout/ct/async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
+			.ToArray();
+
+		var responses = await Task.WhenAll(apiCallTasks);
+
+		foreach (var httpResponseMessage in responses)
+		{
+			Assert.AreEqual(HttpStatusCode.OK, httpResponseMessage.StatusCode);
+		}
+	}
 }

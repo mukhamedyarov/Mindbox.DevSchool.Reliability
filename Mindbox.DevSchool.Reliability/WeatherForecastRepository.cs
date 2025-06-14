@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace Mindbox.DevSchool.Reliability;
 
 public class WeatherForecastRepository
@@ -37,6 +39,11 @@ public class WeatherForecastRepository
 		try
 		{
 			await Task.Delay(TimeSpan.FromSeconds(2), token);
+
+			var chance = Random.Shared.Next(100);
+			if(chance <= 20)
+				throw new TransientException();
+			
 			return Forecasts.Single(x => x.Id == id);
 		}
 		finally
