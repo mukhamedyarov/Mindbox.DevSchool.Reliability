@@ -1,1 +1,5 @@
+### GET sync
 GET http://localhost:5013/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216
+
+### GET async
+GET http://localhost:5013/async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216

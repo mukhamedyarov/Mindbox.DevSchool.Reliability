@@ -5,22 +5,20 @@ namespace Mindbox.DevSchool.Reliability;
 [ApiController]
 public class SimpleController : ControllerBase
 {
-	private readonly SimpleDbContext _dbContext;
+	private readonly WeatherForecastRepository _forecastRepository;
 
-	public SimpleController(SimpleDbContext dbContext)
+	public SimpleController(WeatherForecastRepository forecastRepository)
 	{
-		_dbContext = dbContext;
+		_forecastRepository = forecastRepository;
 	}
 
 	[HttpGet("weatherForecast/{id:guid}")]
-	public WeatherForecast? GetById(Guid id)
-	{
-		return _dbContext.WeatherForecasts.Find(id);
-	}
-	
+	public WeatherForecast? GetById(Guid id) => _forecastRepository.GetById(id);
+
+	#region ThreadStarvationFix
+
 	[HttpGet("async/weatherForecast/{id:guid}")]
-	public async Task<WeatherForecast?> GetByIdAsync(Guid id)
-	{
-		return await _dbContext.WeatherForecasts.FindAsync(id);
-	}
+	public async Task<WeatherForecast?> GetByIdAsync(Guid id) => await _forecastRepository.GetByIAsync(id);
+
+	#endregion
 }
