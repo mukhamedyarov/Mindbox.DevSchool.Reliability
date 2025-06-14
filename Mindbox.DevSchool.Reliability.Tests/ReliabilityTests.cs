@@ -10,13 +10,44 @@ public sealed class ReliabilityTests
 	{
 		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("http://localhost:5013");
-		httpClient.Timeout = TimeSpan.FromSeconds(5);
+		httpClient.Timeout = TimeSpan.FromSeconds(3);
 
 		var makeApiCallTasks = Enumerable.Range(0, 4)
-			.Select(_ => httpClient.GetAsync("weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
+			.Select(_ => httpClient.GetAsync("async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
 			.ToArray();
 
 		var responses = await Task.WhenAll(makeApiCallTasks);
+
+		foreach (var httpResponseMessage in responses)
+		{
+			Assert.AreEqual(HttpStatusCode.OK, httpResponseMessage.StatusCode);
+		}
+	}
+
+	[TestMethod]
+	public async Task ThreadStarvation_2()
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("http://localhost:5013");
+		httpClient.Timeout = TimeSpan.FromSeconds(3);
+		
+		using var tokenSource = new CancellationTokenSource();
+
+		Enumerable.Range(0, 100)
+			.Select(_ => httpClient.GetAsync("ct/async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216", tokenSource.Token))
+			.ToArray();
+
+		await Task.Delay(TimeSpan.FromSeconds(1));
+
+		await tokenSource.CancelAsync();
+		
+		await Task.Delay(TimeSpan.FromSeconds(1));
+		
+		var apiCallTasks = Enumerable.Range(0, 4)
+			.Select(_ => httpClient.GetAsync("ct/async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
+			.ToArray();
+
+		var responses = await Task.WhenAll(apiCallTasks);
 
 		foreach (var httpResponseMessage in responses)
 		{

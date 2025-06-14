@@ -12,16 +12,53 @@ public class WeatherForecastRepository
 			Summary = null
 		}
 	];
+	
+	private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(4, 4); 
 
 	public async Task<WeatherForecast> GetByIAsync(Guid id)
 	{
-		await Task.Delay(TimeSpan.FromSeconds(2));
-		return Forecasts.Single(x => x.Id == id);
+		await _semaphore.WaitAsync();
+
+		try
+		{
+			await Task.Delay(TimeSpan.FromSeconds(2));
+			return Forecasts.Single(x => x.Id == id);
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+
+	public async Task<WeatherForecast> GetByIAsync(Guid id, CancellationToken token)
+	{
+		await _semaphore.WaitAsync(token);
+
+		try
+		{
+			await Task.Delay(TimeSpan.FromSeconds(2), token);
+			return Forecasts.Single(x => x.Id == id);
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+
 	}
 
 	public WeatherForecast GetById(Guid id)
 	{
-		Task.Delay(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult();
-		return Forecasts.Single(x => x.Id == id);
+		_semaphore.Wait();
+
+		try
+		{
+
+			Task.Delay(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult();
+			return Forecasts.Single(x => x.Id == id);
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
 	}
 }

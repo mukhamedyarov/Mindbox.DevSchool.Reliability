@@ -15,10 +15,10 @@ public class SimpleController : ControllerBase
 	[HttpGet("weatherForecast/{id:guid}")]
 	public WeatherForecast? GetById(Guid id) => _forecastRepository.GetById(id);
 
-	#region ThreadStarvationFix
-
 	[HttpGet("async/weatherForecast/{id:guid}")]
 	public async Task<WeatherForecast?> GetByIdAsync(Guid id) => await _forecastRepository.GetByIAsync(id);
 
-	#endregion
+	[HttpGet("ct/async/weatherForecast/{id:guid}")]
+	public async Task<WeatherForecast?> GetByIdAsync(Guid id, CancellationToken token) =>
+		await _forecastRepository.GetByIAsync(id, token);
 }
