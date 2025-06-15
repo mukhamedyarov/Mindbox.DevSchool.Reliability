@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace Mindbox.DevSchool.Reliability;
 
 public class WeatherForecastRepository
@@ -14,48 +12,96 @@ public class WeatherForecastRepository
 			Summary = null
 		}
 	];
-	
-	private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(4, 4); 
 
-	public async Task<WeatherForecast> GetByIAsync(Guid id)
+	private static readonly SemaphoreSlim Semaphore = new(4, 4);
+
+	private static volatile bool _brokenForever;
+
+	private static volatile int _brokenRequests;
+
+	private static DateTime _brokenTill = DateTime.MinValue;
+
+	private static volatile int _requestsInProgress;
+
+	private readonly ILogger<WeatherForecastRepository> _logger;
+
+	public WeatherForecastRepository(ILogger<WeatherForecastRepository> logger)
 	{
-		await _semaphore.WaitAsync();
-
-		try
-		{
-			await Task.Delay(TimeSpan.FromSeconds(2));
-			return Forecasts.Single(x => x.Id == id);
-		}
-		finally
-		{
-			_semaphore.Release();
-		}
+		_logger = logger;
 	}
 
-	public async Task<WeatherForecast> GetByIAsync(Guid id, CancellationToken token)
+	public async Task<WeatherForecast> GetByIAsync(Guid id, CancellationToken? cancellationToken = null)
 	{
-		await _semaphore.WaitAsync(token);
+		if (_brokenForever)
+			throw new BrokenForeverException();
+
+		if (_brokenTill >= DateTime.UtcNow)
+		{
+			var brokenCount = Interlocked.Increment(ref _brokenRequests);
+			
+			_logger.LogInformation($"Broken count: {brokenCount}");
+			
+			if (brokenCount > 100)
+			{
+				Interlocked.Exchange(ref _brokenForever, true);
+				
+				_logger.LogInformation($"Broken forever!");
+				
+				throw new BrokenForeverException();
+			}
+
+			throw new BrokenTemporaryException();
+		}
+		
+		Interlocked.Exchange(ref _brokenRequests, 0);
 
 		try
 		{
-			await Task.Delay(TimeSpan.FromSeconds(2), token);
+			var requestsInProgress = Interlocked.Increment(ref _requestsInProgress);
+
+			_logger.LogInformation($"Requests in progress: {requestsInProgress}");
+
+			if (requestsInProgress > 200)
+			{
+				_brokenTill = DateTime.UtcNow.AddSeconds(30);
+				_logger.LogInformation($"Broken till: {_brokenTill}");
+				return await GetByIAsync(id, cancellationToken);
+			}
+
+			await Semaphore.WaitAsync(cancellationToken ?? CancellationToken.None);
+
+			await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken ?? CancellationToken.None);
 
 			var chance = Random.Shared.Next(100);
-			if(chance <= 20)
+			if (chance <= 20)
 				throw new TransientException();
-			
+
+			Semaphore.Release();
+
 			return Forecasts.Single(x => x.Id == id);
+		}
+		catch
+		{
+			Semaphore.Release();
+			throw;
 		}
 		finally
 		{
-			_semaphore.Release();
+			Interlocked.Decrement(ref _requestsInProgress);
 		}
-
 	}
 
 	public WeatherForecast GetById(Guid id)
 	{
-		_semaphore.Wait();
+		if (_brokenForever)
+			throw new BrokenForeverException();
+
+		Interlocked.Increment(ref _requestsInProgress);
+
+		if (_requestsInProgress > 100)
+			Interlocked.Exchange(ref _brokenForever, true);
+
+		Semaphore.Wait();
 
 		try
 		{
@@ -65,7 +111,8 @@ public class WeatherForecastRepository
 		}
 		finally
 		{
-			_semaphore.Release();
+			Interlocked.Decrement(ref _requestsInProgress);
+			Semaphore.Release();
 		}
 	}
 }

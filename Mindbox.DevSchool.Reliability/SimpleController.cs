@@ -3,20 +3,25 @@ using Microsoft.AspNetCore.Mvc;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Polly.Retry;
+using Polly.Wrap;
 
 namespace Mindbox.DevSchool.Reliability;
 
 [ApiController]
 public class SimpleController : ControllerBase
 {
+	private static readonly AsyncRetryPolicy RetryPolicy = Policy.Handle<TransientException>()
+		.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(100), 3, fastFirst: true));
+	private static readonly AsyncPolicyWrap RetryAndCircuitBreakerPolicy = Policy.WrapAsync(RetryPolicy,
+		Policy.Handle<BrokenTemporaryException>()
+			.CircuitBreakerAsync(3, TimeSpan.FromSeconds(35)));
+
+
 	private readonly WeatherForecastRepository _forecastRepository;
-	private readonly AsyncRetryPolicy _retryPolicy;
 
 	public SimpleController(WeatherForecastRepository forecastRepository)
 	{
 		_forecastRepository = forecastRepository;
-		_retryPolicy = Policy.Handle<TransientException>()
-			.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(100), 3, fastFirst: true));
 	}
 
 	[HttpGet("weatherForecast/{id:guid}")]
@@ -29,6 +34,30 @@ public class SimpleController : ControllerBase
 	public async Task<WeatherForecast?> GetByIdAsync(Guid id, CancellationToken token) =>
 		await _forecastRepository.GetByIAsync(id, token);
 
+	[HttpGet("cb/retry/timeout/ct/async/weatherForecast/{id:guid}")]
+	public async Task<WeatherForecast?> GetByIdCbAsync(Guid id, CancellationToken token)
+	{
+		return await RetryAndCircuitBreakerPolicy.ExecuteAsync(async () =>
+		{
+			var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+			cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(3));
+
+			return await _forecastRepository.GetByIAsync(id, cancellationTokenSource.Token);
+		});
+	}
+
+	[HttpGet("retry/timeout/ct/async/weatherForecast/{id:guid}")]
+	public async Task<WeatherForecast?> GetByIdRetryAsync(Guid id, CancellationToken token)
+	{
+		return await RetryPolicy.ExecuteAsync(async () =>
+		{
+			var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+			cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(3));
+
+			return await _forecastRepository.GetByIAsync(id, cancellationTokenSource.Token);
+		});
+	}
+
 	[HttpGet("timeout/ct/async/weatherForecast/{id:guid}")]
 	public async Task<WeatherForecast?> GetByIdTimeoutAsync(Guid id, CancellationToken token)
 	{
@@ -36,17 +65,5 @@ public class SimpleController : ControllerBase
 		cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(3));
 
 		return await _forecastRepository.GetByIAsync(id, cancellationTokenSource.Token);
-	}
-	
-	[HttpGet("retry/timeout/ct/async/weatherForecast/{id:guid}")]
-	public async Task<WeatherForecast?> GetByIdRetryAsync(Guid id, CancellationToken token)
-	{
-		return await _retryPolicy.ExecuteAsync(async () =>
-		{
-			var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-			cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(3));
-
-			return await _forecastRepository.GetByIAsync(id, cancellationTokenSource.Token);
-		});
 	}
 }

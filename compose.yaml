@@ -6,7 +6,3 @@
       dockerfile: Mindbox.DevSchool.Reliability/Dockerfile
     ports:
       - "5013:5013"
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
