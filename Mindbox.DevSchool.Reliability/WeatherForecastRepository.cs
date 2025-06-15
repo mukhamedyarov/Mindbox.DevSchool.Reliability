@@ -10,6 +10,27 @@ public class WeatherForecastRepository
 			Date = new DateOnly(2021, 07, 01),
 			TemperatureC = 27,
 			Summary = null
+		},
+		new()
+		{
+			Id = Guid.Parse("80ff7a2f-f64a-4079-b8e1-86dd661f1ec2"),
+			Date = new DateOnly(2021, 07, 02),
+			TemperatureC = 28,
+			Summary = null
+		},
+		new()
+		{
+			Id = Guid.Parse("72bb2fe6-1753-4afa-bf66-342f9c5fb903"),
+			Date = new DateOnly(2021, 07, 03),
+			TemperatureC = 29,
+			Summary = null
+		},
+		new()
+		{
+			Id = Guid.Parse("0dc178a2-6d2c-430d-8f4f-9d80811d5331"),
+			Date = new DateOnly(2021, 07, 04),
+			TemperatureC = 30,
+			Summary = null
 		}
 	];
 
@@ -30,6 +51,12 @@ public class WeatherForecastRepository
 		_logger = logger;
 	}
 
+	public async Task<IReadOnlyCollection<WeatherForecast>> GetByIdsAsync(IEnumerable<Guid> ids)
+	{
+		await Task.Delay(TimeSpan.FromSeconds(2));
+		return ids.Chunk(100).SelectMany(chunk => Forecasts.Where(x => chunk.Contains(x.Id))).ToArray();
+	}
+	
 	public async Task<WeatherForecast> GetByIAsync(Guid id, CancellationToken? cancellationToken = null)
 	{
 		if (_brokenForever)
@@ -88,31 +115,6 @@ public class WeatherForecastRepository
 		finally
 		{
 			Interlocked.Decrement(ref _requestsInProgress);
-		}
-	}
-
-	public WeatherForecast GetById(Guid id)
-	{
-		if (_brokenForever)
-			throw new BrokenForeverException();
-
-		Interlocked.Increment(ref _requestsInProgress);
-
-		if (_requestsInProgress > 100)
-			Interlocked.Exchange(ref _brokenForever, true);
-
-		Semaphore.Wait();
-
-		try
-		{
-
-			Task.Delay(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult();
-			return Forecasts.Single(x => x.Id == id);
-		}
-		finally
-		{
-			Interlocked.Decrement(ref _requestsInProgress);
-			Semaphore.Release();
 		}
 	}
 }

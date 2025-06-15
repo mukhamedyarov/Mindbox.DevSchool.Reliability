@@ -30,7 +30,11 @@ public class SimpleController : ControllerBase
 	}
 
 	[HttpGet("weatherForecast/{id:guid}")]
-	public WeatherForecast? GetById(Guid id) => _forecastRepository.GetById(id);
+	public WeatherForecast? GetById(Guid id) => _forecastRepository.GetByIAsync(id).GetAwaiter().GetResult();
+
+	[HttpGet("weatherForecasts")]
+	public Task<IReadOnlyCollection<WeatherForecast>> GetByIds([FromQuery(Name = "id")] IReadOnlyCollection<Guid> ids) =>
+		_forecastRepository.GetByIdsAsync(ids);
 
 	[HttpGet("async/weatherForecast/{id:guid}")]
 	public async Task<WeatherForecast?> GetByIdAsync(Guid id) => await _forecastRepository.GetByIAsync(id);

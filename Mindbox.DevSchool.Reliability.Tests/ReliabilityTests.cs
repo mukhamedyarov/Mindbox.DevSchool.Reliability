@@ -6,16 +6,24 @@ namespace Mindbox.DevSchool.Reliability.Tests;
 public sealed class ReliabilityTests
 {
 	[TestMethod]
-	public async Task Reliability()
+	public async Task Reliability1()
 	{
 		// add threads limit
+
+		string[] guids =
+		[
+			"c0f4ac08-eafc-4fdb-91f8-fb39dda1d216",
+			"80ff7a2f-f64a-4079-b8e1-86dd661f1ec2",
+			"72bb2fe6-1753-4afa-bf66-342f9c5fb903",
+			"0dc178a2-6d2c-430d-8f4f-9d80811d5331"
+		];
 
 		using var httpClient = new HttpClient();
 		httpClient.BaseAddress = new Uri("http://localhost:5013");
 		httpClient.Timeout = TimeSpan.FromSeconds(3);
 
-		var makeApiCallTasks = Enumerable.Range(0, 4)
-			.Select(_ => httpClient.GetAsync("weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
+		var makeApiCallTasks = guids
+			.Select(id => httpClient.GetAsync($"weatherForecast/{id}"))
 			.ToArray();
 
 		var responses = await Task.WhenAll(makeApiCallTasks);
@@ -24,6 +32,30 @@ public sealed class ReliabilityTests
 		{
 			Assert.AreEqual(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 		}
+	}
+
+	[TestMethod]
+	public async Task Reliability1_1()
+	{
+		// add threads limit
+
+		string[] guids =
+		[
+			"c0f4ac08-eafc-4fdb-91f8-fb39dda1d216",
+			"80ff7a2f-f64a-4079-b8e1-86dd661f1ec2",
+			"72bb2fe6-1753-4afa-bf66-342f9c5fb903",
+			"0dc178a2-6d2c-430d-8f4f-9d80811d5331"
+		];
+
+		var url = guids.Aggregate("weatherForecasts?", (current, id) => $"{current}id={id}&");
+
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("http://localhost:5013");
+		httpClient.Timeout = TimeSpan.FromSeconds(3);
+
+		var response = await httpClient.GetAsync(url);
+		
+		Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 	}
 
 	[TestMethod]
@@ -142,10 +174,10 @@ public sealed class ReliabilityTests
 
 		var response =
 			await httpClient.GetAsync("retry/timeout/ct/async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216");
-			
+
 		Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 	}
-	
+
 	[TestMethod]
 	public async Task Reliability6()
 	{
@@ -176,7 +208,7 @@ public sealed class ReliabilityTests
 
 		var response =
 			await httpClient.GetAsync("cb/retry/timeout/ct/async/weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216");
-			
+
 		Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 	}
 }

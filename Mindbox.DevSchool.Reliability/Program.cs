@@ -9,8 +9,8 @@ public class Program
 {
 	public static void Main(string[] args)
 	{
-		// ThreadPool.SetMinThreads(workerThreads: 2, completionPortThreads: 100);
-		// ThreadPool.SetMaxThreads(workerThreads: 2, completionPortThreads: 200);
+		ThreadPool.SetMinThreads(workerThreads: 2, completionPortThreads: 100);
+		ThreadPool.SetMaxThreads(workerThreads: 2, completionPortThreads: 200);
 		
 		var builder = WebApplication.CreateBuilder(args);
 
