@@ -1,3 +1,5 @@
+using EasyCaching.Abstractions;
+
 using Microsoft.AspNetCore.Mvc;
 
 using Polly;
@@ -16,12 +18,15 @@ public class SimpleController : ControllerBase
 		Policy.Handle<BrokenTemporaryException>()
 			.CircuitBreakerAsync(3, TimeSpan.FromSeconds(35)));
 
+	private readonly ICache<WeatherForecast> _forecastCache;
+
 
 	private readonly WeatherForecastRepository _forecastRepository;
 
-	public SimpleController(WeatherForecastRepository forecastRepository)
+	public SimpleController(WeatherForecastRepository forecastRepository, ICache<WeatherForecast> forecastCache)
 	{
 		_forecastRepository = forecastRepository;
+		_forecastCache = forecastCache;
 	}
 
 	[HttpGet("weatherForecast/{id:guid}")]
@@ -33,6 +38,21 @@ public class SimpleController : ControllerBase
 	[HttpGet("ct/async/weatherForecast/{id:guid}")]
 	public async Task<WeatherForecast?> GetByIdAsync(Guid id, CancellationToken token) =>
 		await _forecastRepository.GetByIAsync(id, token);
+
+	[HttpGet("cache/cb/retry/timeout/ct/async/weatherForecast/{id:guid}")]
+	public async Task<WeatherForecast?> GetByIdCacheAsync(Guid id, CancellationToken token)
+	{
+		return await _forecastCache.GetOrAddAsync(id.ToString("D"), async () =>
+		{
+			return await RetryAndCircuitBreakerPolicy.ExecuteAsync(async () =>
+			{
+				var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+				cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(3));
+
+				return await _forecastRepository.GetByIAsync(id, cancellationTokenSource.Token);
+			});
+		});
+	}
 
 	[HttpGet("cb/retry/timeout/ct/async/weatherForecast/{id:guid}")]
 	public async Task<WeatherForecast?> GetByIdCbAsync(Guid id, CancellationToken token)

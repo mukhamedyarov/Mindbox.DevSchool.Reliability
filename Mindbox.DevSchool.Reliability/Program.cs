@@ -1,3 +1,8 @@
+using EasyCaching.Advanced.Template;
+using EasyCaching.Core;
+using EasyCaching.Core.Serialization;
+using EasyCaching.InMemory;
+
 namespace Mindbox.DevSchool.Reliability;
 
 public class Program
@@ -12,6 +17,13 @@ public class Program
 		builder.Services.AddControllers();
 
 		builder.Services.AddSingleton<WeatherForecastRepository>();
+
+		builder.Services.AddSingleton<IEasyCachingSerializer, JsonCachingSerializer>();
+		builder.Services.AddEasyCaching((Action<EasyCachingOptions>) (options =>
+		{
+			options.UseInMemory("InMemory");
+		}));
+		builder.Services.AddCache<WeatherForecast>("InMemory", TimeSpan.FromHours(1));
 
 		var app = builder.Build();
 

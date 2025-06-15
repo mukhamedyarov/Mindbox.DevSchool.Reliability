@@ -18,6 +18,10 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Mindbox.EasyCaching.Abstractions" Version="4.2.57" />
+      <PackageReference Include="Mindbox.EasyCaching.Advanced.Template" Version="4.2.57" />
+      <PackageReference Include="Mindbox.EasyCaching.Decoration.Polly" Version="4.2.57" />
+      <PackageReference Include="Mindbox.EasyCaching.InMemory" Version="4.2.57" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
       <PackageReference Include="Polly" Version="8.6.0" />
       <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
