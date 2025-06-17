@@ -1,6 +1,6 @@
 namespace Mindbox.DevSchool.Reliability;
 
-public class WeatherForecastRepository
+public class WeatherForecastClient
 {
 	private static readonly IReadOnlyCollection<WeatherForecast> Forecasts =
 	[
@@ -44,9 +44,9 @@ public class WeatherForecastRepository
 
 	private static volatile int _requestsInProgress;
 
-	private readonly ILogger<WeatherForecastRepository> _logger;
+	private readonly ILogger<WeatherForecastClient> _logger;
 
-	public WeatherForecastRepository(ILogger<WeatherForecastRepository> logger)
+	public WeatherForecastClient(ILogger<WeatherForecastClient> logger)
 	{
 		_logger = logger;
 	}
