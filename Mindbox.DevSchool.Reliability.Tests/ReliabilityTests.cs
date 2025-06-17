@@ -75,6 +75,7 @@ public sealed class ReliabilityTests
 	{
 		using var httpClientWithoutTimeout = new HttpClient();
 		httpClientWithoutTimeout.BaseAddress = new Uri("http://localhost:5013");
+		// httpClientWithoutTimeout.Timeout = TimeSpan.FromMilliseconds(1);
 
 		var tasks = Enumerable.Range(0, 100)
 			.Select(_ => httpClientWithoutTimeout.GetAsync("weatherForecast/c0f4ac08-eafc-4fdb-91f8-fb39dda1d216"))
@@ -98,6 +99,7 @@ public sealed class ReliabilityTests
 		}
 	}
 
+	// тест флачит, потому что WeatherForecastClient иногда бросает ошибки. надо починить взаимодействие с WeatherForecastClient.
 	[TestMethod]
 	public async Task Reliability4()
 	{

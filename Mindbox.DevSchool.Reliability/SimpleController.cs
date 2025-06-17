@@ -1,11 +1,4 @@
-using EasyCaching.Abstractions;
-
 using Microsoft.AspNetCore.Mvc;
-
-using Polly;
-using Polly.Contrib.WaitAndRetry;
-using Polly.Retry;
-using Polly.Wrap;
 
 namespace Mindbox.DevSchool.Reliability;
 
